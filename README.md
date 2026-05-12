@@ -10,9 +10,9 @@ Each course module has its own dedicated branch. You submit your capstone projec
 
 | Module | Target branch | What you build |
 |---|---|---|
-| **Prompt Engineering** | [`prompt`](../../tree/prompt) | A conversational app with synthetic data generation + natural-language SQL querying. |
-| **Retrieval-Augmented Generation** | [`rag`](../../tree/rag) | A multimodal RAG system over the IFC Annual Report 2024 PDF (text, tables, images). |
-| **Agentic Systems** | [`agentic`](../../tree/agentic) | An autonomous research agent built with ADK — plan, execute, critique, refine. |
+| **Prompt Engineering** | [`prompt`](https://github.com/griddynamics/gridu-genai/tree/prompt) | A conversational app with synthetic data generation + natural-language SQL querying. |
+| **Retrieval-Augmented Generation** | [`rag`](https://github.com/griddynamics/gridu-genai/tree/rag) | A multimodal RAG system over the IFC Annual Report 2024 PDF (text, tables, images). |
+| **Agentic Systems** | [`agentic`](https://github.com/griddynamics/gridu-genai/tree/agentic) | An autonomous research agent built with ADK — plan, execute, critique, refine. |
 
 Each module branch contains a single `README.md` describing the deliverables for that module. The branch is intentionally **empty otherwise** — your PR adds your full project on top of that blank slate, so the reviewer sees exactly what you built and nothing else.
 
@@ -24,7 +24,7 @@ Each module branch contains a single `README.md` describing the deliverables for
 2. Create a branch off the module you are working on. For example, for the RAG capstone:
    ```bash
    git checkout rag
-   git checkout -b <your-name>/rag-submission
+   git checkout -b <user-ldap-id>/rag-submission
    ```
 3. Implement your solution on that branch. Commit and push as often as you like.
 4. When you are ready for review, open a **Pull Request** targeting the module branch (`prompt`, `rag`, or `agentic`).
@@ -33,13 +33,18 @@ Each module branch contains a single `README.md` describing the deliverables for
    - a per-phase analysis with concrete file references,
    - a list of actionable items so you know exactly what to fix.
 6. If the verdict is `failed`, push more commits — the reviewer re-runs on every push.
-7. Once you reach `passed` or `passed_with_notes`, your instructor is notified and will follow up.
+7. Once you reach `passed` or `passed_with_notes`, request final approval from your professor — they will review the PR manually before merging.
 
 ---
 
 ## What the AI reviewer checks
 
-The reviewer reads your **task specification** (the module branch's `README.md`) and the **rubric** for that module (in `.github/rubrics/`). It then walks through every mandatory phase of the spec and verifies, against the actual code:
+The reviewer reads:
+
+- the **task specification** — the `README.md` of the module branch you are PR-ing into;
+- the **rubric** for that module — [`.github/rubrics/prompt.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/rubrics/prompt.md), [`.github/rubrics/rag.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/rubrics/rag.md), or [`.github/rubrics/agentic.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/rubrics/agentic.md).
+
+It then walks through every mandatory phase of the spec and verifies, against the actual code:
 
 - Are all explicitly required technologies actually imported and wired into the running app? (Not just listed in `requirements.txt`.)
 - Are all mandatory phases delivered end-to-end? Can the capability be traced from an entrypoint?
@@ -63,7 +68,7 @@ main                              ← this branch: workflow, evaluator, rubrics,
     │   ├── prompt.md             ← per-module grading guidance
     │   ├── rag.md
     │   └── agentic.md
-    └── SETUP.md                  ← instructor setup notes
+    └── SETUP.md                  ← professor setup notes
 
 prompt                            ← orphan branch: Module 1 spec only
 rag                               ← orphan branch: Module 2 spec only
@@ -72,6 +77,6 @@ agentic                           ← orphan branch: Module 3 spec only
 
 ---
 
-## For instructors
+## For professors
 
-See [`.github/SETUP.md`](.github/SETUP.md) for setup steps: required GitHub Secrets, optional Slack notification, and how to enable branch protection once the workflow is verified.
+See [`.github/SETUP.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/SETUP.md) for setup steps: required GitHub Secrets and how to enable branch protection once the workflow is verified.

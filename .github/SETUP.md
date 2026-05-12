@@ -1,24 +1,16 @@
-# Instructor setup guide
+# Professor setup guide
 
-This guide walks you through everything needed to operate the AI review pipeline. Order matters — the workflow is inert until step 2 is complete.
+This guide walks you through everything needed to operate the AI review pipeline. Order matters — the workflow is inert until step 1 is complete.
 
 ---
 
-## 1. Secrets — required & optional
+## 1. Required secret
 
-Go to **Settings → Secrets and variables → Actions** in the repository and add the following.
+Go to **Settings → Secrets and variables → Actions** in the repository and add:
 
-### Required
-
-| Secret | How to obtain | Notes |
-|---|---|---|
-| `GEMINI_API_KEY` | <https://aistudio.google.com/apikey> → **Create API key** | Choose the GCP project `gd-gcp-techlead-experiments` if AI Studio asks. Quotas and billing are governed by the AI Studio key — verify quota in AI Studio before the first wave of submissions. |
-
-### Optional
-
-| Secret | How to obtain | Notes |
-|---|---|---|
-| `SLACK_WEBHOOK_URL` | <https://api.slack.com/apps> → create a Slack app for your workspace → **Incoming Webhooks** → activate → **Add New Webhook to Workspace** → choose the channel you want notifications in. Copy the URL. | If this secret is missing, the workflow simply skips the notification step. No errors. |
+| Secret | How to obtain |
+|---|---|
+| `GEMINI_API_KEY` | <https://aistudio.google.com/apikey> → **Create API key**. Verify the quota in AI Studio before the first wave of submissions. |
 
 `GITHUB_TOKEN` is provided automatically by GitHub Actions — no setup needed.
 
@@ -26,16 +18,15 @@ Go to **Settings → Secrets and variables → Actions** in the repository and a
 
 ## 2. Confirm the workflow runs
 
-After secrets are in place, smoke-test the pipeline:
+After the secret is in place, smoke-test the pipeline:
 
 1. Check out the `prompt` branch locally.
 2. Create a throwaway branch: `git checkout -b smoke-test`.
-3. Add a tiny placeholder file (e.g., a `README.md` with the words "Smoke test"), commit, push.
+3. Add a tiny placeholder file, commit, push.
 4. Open a PR `smoke-test → prompt`.
 5. Watch **Actions → AI Review**. The job should:
    - Run `evaluate.py` against the rubric for `prompt`.
    - Post a single review comment on the PR (verdict will be `failed` because there is no real submission, which is expected).
-   - Skip Slack (because the verdict is `failed`) or send a notification (because the verdict is `passed_with_notes`/`passed`, which the AI is unlikely to give an empty PR but you can verify Slack later with a real submission).
 6. Delete the throwaway PR and branch.
 
 If the run fails before reaching the evaluator step, the most likely cause is a typo in the `GEMINI_API_KEY` secret or quota exhaustion on the AI Studio key.
@@ -58,14 +49,14 @@ For each of `prompt`, `rag`, `agentic`:
 
 **Settings → Branches → Add branch ruleset** (or, on classic UI, **Add rule**):
 
-- **Branch name pattern:** `prompt` (and one ruleset per branch, or use `{prompt,rag,agentic}` if your plan supports rulesets with multiple targets).
+- **Branch name pattern:** `prompt` (one ruleset per branch, or use `{prompt,rag,agentic}` if your plan supports rulesets with multiple targets).
 - **Require a pull request before merging** — ✓
-  - **Required approvals:** 1 (the instructor)
+  - **Required approvals:** 1 (the professor)
   - **Dismiss stale pull-request approvals when new commits are pushed** — ✓
 - **Require status checks to pass before merging** — ✓
   - **Require branches to be up to date before merging** — ✓
   - **Required checks:** add `review` (this is the job name from `ai-review.yml`).
-- **Restrict who can push to matching branches** — ✓ (limit to instructors / maintainers; this prevents direct pushes around the PR flow).
+- **Restrict who can push to matching branches** — ✓ (limit to professors / maintainers; this prevents direct pushes around the PR flow).
 - **Block force pushes** — ✓
 - **Restrict deletions** — ✓
 
@@ -75,13 +66,13 @@ For each of `prompt`, `rag`, `agentic`:
 
 ## 5. (Future) Upgrade from AI Studio API key to Vertex AI
 
-The course spec asks students to use Vertex AI on the GCP project `gd-gcp-techlead-experiments`. The reviewer pipeline is configured to use **AI Studio API keys** instead, because creating a Vertex-AI-enabled service account requires IAM admin rights on the project that the current operator does not have.
+The course spec asks students to use Vertex AI through a GCP project. The reviewer pipeline currently uses **AI Studio API keys** instead, because creating a Vertex-AI-enabled service account requires IAM admin rights on the GCP project that the current operator does not have.
 
-When that role is available, switch the pipeline to Vertex AI as follows:
+When the IAM role is available, switch the pipeline to Vertex AI:
 
-1. Have a GCP-project admin create a service account in `gd-gcp-techlead-experiments` (e.g., `ai-reviewer-sa`) with role `roles/aiplatform.user`.
+1. Have a GCP-project admin create a service account (e.g., `ai-reviewer-sa`) with the `roles/aiplatform.user` role.
 2. Generate a JSON key and add it as a GitHub secret named `GCP_SA_KEY`.
-3. Also add `GCP_PROJECT_ID` = `gd-gcp-techlead-experiments`.
+3. Add a second secret `GCP_PROJECT_ID` with the project ID.
 4. Modify `.github/workflows/ai-review.yml` — add a Google-auth step before the evaluator:
    ```yaml
    - name: Google auth
@@ -95,7 +86,21 @@ This is a 10-minute change once the IAM is unblocked.
 
 ---
 
-## 6. Re-running a review
+## 6. (Future) Notifications
+
+There are currently **no automatic notifications**. The professor checks the repository's Pull Requests tab for new submissions and the AI's verdict on each.
+
+Once the pipeline has passed Grid Dynamics' internal security review, the workflow can be extended to push notifications to:
+
+- **Slack** — via an Incoming Webhook (single Slack app + `SLACK_WEBHOOK_URL` secret + one `curl` step in the workflow, gated on `grade == passed_with_notes || grade == passed`).
+- **Email** — via SendGrid or an equivalent provider.
+- **GitHub Issues / Projects** — auto-create a tracking issue for each `passed*` submission so the professor has a follow-up backlog without leaving GitHub.
+
+These are deliberately deferred until security review approves Grid Dynamics' use of an external messaging integration with the AI review pipeline.
+
+---
+
+## 7. Re-running a review
 
 A student's review re-runs automatically on every `synchronize` event (i.e., every new push to the PR head branch). The bot updates its existing PR comment in place rather than creating a new one each time. There is nothing to clean up.
 
@@ -108,7 +113,7 @@ git push
 
 ---
 
-## 7. Cost monitoring
+## 8. Cost monitoring
 
 Watch the AI Studio API key's usage at <https://aistudio.google.com/apikey>. A single review consumes roughly:
 
