@@ -57,18 +57,27 @@ Share the top-level [`README.md`](https://github.com/griddynamics/gridu-genai/bl
 
 ---
 
-## 4. Branch protection + no-merge enforcement (already applied)
+## 4. Branch protection (already applied)
 
-The `prompt`, `rag`, and `agentic` branches are protected to require **two** status checks before a PR can be merged:
+All four real branches in this repo — `main`, `prompt`, `rag`, `agentic` — are protected so that **course participants cannot push directly and cannot merge their own PRs**. The settings are uniform:
+
+- **Direct push restricted to `drMacq`** — every other Write-access collaborator must go through a PR.
+- **Required approving reviews: 1** — a PR cannot be merged until someone (in practice: you, the admin) clicks **Approve**. Click-Comment / Click-Request-Changes does not count.
+- **Dismiss stale approvals on new commits** — if a student pushes after you approved, your approval is auto-dismissed and they need a fresh approve. Stops "approve once, sneak in code later" attacks.
+- **Block force pushes** — history is append-only.
+- **Block branch deletions** — module branches stay alive as reference targets forever.
+- **`enforce_admins: false`** — you (as repo admin) keep the bypass for rubric/spec edits.
+
+On top of that, the three module branches (`prompt`, `rag`, `agentic`) require two status checks:
 
 - `Review (Claude)` — green when the AI verdict is `passed` or `passed_with_notes`, red when it's `failed`. Provides verdict signal on the PR.
-- `Merge blocked (no-merge policy)` — **always red.** Comes from `.github/workflows/merge-block.yml`, whose only job is to refuse the merge. Because this check can never go green, the **Merge pull request** button on every module-branch PR is permanently disabled. No accidental merges are possible.
+- `Merge blocked (no-merge policy)` — **always red.** Comes from `.github/workflows/merge-block.yml`, whose only job is to refuse the merge. Because this check can never go green, the **Merge pull request** button on every module-branch PR is permanently disabled regardless of approvals.
 
-This is intentional. Module branches are evaluation-only. PRs are read for their AI review and the code changes, then closed (without merge). `.github/workflows/cleanup-branch.yml` automatically deletes the head branch on PR close so the branch list stays tidy.
+`.github/workflows/cleanup-branch.yml` automatically deletes the head branch on PR close so the branch list stays tidy.
 
 ### Updating the spec / workflows on a module branch
 
-The merge block only fires on `pull_request` events, so as an admin you can still push commits directly to a module branch from your local clone:
+As admin (drMacq) you bypass the push restriction, so directly pushing rubric/spec/workflow updates to a module branch is fine:
 
 ```bash
 git checkout rag
@@ -77,13 +86,33 @@ git commit -am "Tighten Phase 3 wording"
 git push origin rag
 ```
 
-The push is not subject to either status check.
+The push is not subject to status checks (those only run on `pull_request`).
 
 ### Recreating the protection rule
 
 If you ever need to rebuild the rules (e.g. after a branch deletion), run:
 
 ```bash
+# main — no status checks, just require PR + approval + push restriction
+gh api -X PUT "repos/griddynamics/gridu-genai/branches/main/protection" \
+  -H "Accept: application/vnd.github+json" \
+  --input - <<'JSON'
+{
+  "required_status_checks": null,
+  "enforce_admins": false,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false
+  },
+  "restrictions": {"users": ["drMacq"], "teams": [], "apps": []},
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_conversation_resolution": false
+}
+JSON
+
+# module branches — same plus the two required checks
 for br in prompt rag agentic; do
   gh api -X PUT "repos/griddynamics/gridu-genai/branches/$br/protection" \
     -H "Accept: application/vnd.github+json" \
@@ -97,10 +126,15 @@ for br in prompt rag agentic; do
     ]
   },
   "enforce_admins": false,
-  "required_pull_request_reviews": null,
-  "restrictions": null,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false
+  },
+  "restrictions": {"users": ["drMacq"], "teams": [], "apps": []},
   "allow_force_pushes": false,
-  "allow_deletions": false
+  "allow_deletions": false,
+  "required_conversation_resolution": false
 }
 JSON
 done
