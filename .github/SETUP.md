@@ -57,13 +57,31 @@ Share the top-level [`README.md`](https://github.com/griddynamics/gridu-genai/bl
 
 ---
 
-## 4. Branch protection (already applied)
+## 4. Branch protection + no-merge enforcement (already applied)
 
-The `prompt`, `rag`, and `agentic` branches are protected to **require the `Review (Claude)` check to pass before a PR can be merged**. When the AI verdict is `failed` the workflow exits with status 1, the check goes red, and the **Merge pull request** button is disabled. This is the defence-in-depth layer behind the no-merge policy: even if the **Merge** button is clicked by accident, GitHub itself refuses while the AI hasn't cleared the submission.
+The `prompt`, `rag`, and `agentic` branches are protected to require **two** status checks before a PR can be merged:
 
-The protection is intentionally minimal — only the status-check requirement is enabled. No PR approval requirement, no push restrictions, no signed-commits, no force-push block beyond GitHub's default. Tightening any of these is straightforward and additive.
+- `Review (Claude)` — green when the AI verdict is `passed` or `passed_with_notes`, red when it's `failed`. Provides verdict signal on the PR.
+- `Merge blocked (no-merge policy)` — **always red.** Comes from `.github/workflows/merge-block.yml`, whose only job is to refuse the merge. Because this check can never go green, the **Merge pull request** button on every module-branch PR is permanently disabled. No accidental merges are possible.
 
-If you ever need to recreate the rules (e.g. after a branch deletion), run:
+This is intentional. Module branches are evaluation-only. PRs are read for their AI review and the code changes, then closed (without merge). `.github/workflows/cleanup-branch.yml` automatically deletes the head branch on PR close so the branch list stays tidy.
+
+### Updating rubrics / specs / workflows on a module branch
+
+The merge block only fires on `pull_request` events, so as an admin you can still push commits directly to a module branch from your local clone:
+
+```bash
+git checkout rag
+# edit .github/rubrics/rag.md or README.md or whatever
+git commit -am "Tighten Phase 3 wording"
+git push origin rag
+```
+
+The push is not subject to either status check.
+
+### Recreating the protection rule
+
+If you ever need to rebuild the rules (e.g. after a branch deletion), run:
 
 ```bash
 for br in prompt rag agentic; do
@@ -71,7 +89,13 @@ for br in prompt rag agentic; do
     -H "Accept: application/vnd.github+json" \
     --input - <<'JSON'
 {
-  "required_status_checks": {"strict": false, "checks": [{"context": "Review (Claude)"}]},
+  "required_status_checks": {
+    "strict": false,
+    "checks": [
+      {"context": "Review (Claude)"},
+      {"context": "Merge blocked (no-merge policy)"}
+    ]
+  },
   "enforce_admins": false,
   "required_pull_request_reviews": null,
   "restrictions": null,
