@@ -57,22 +57,30 @@ Share the top-level [`README.md`](https://github.com/griddynamics/gridu-genai/bl
 
 ---
 
-## 4. (Recommended) Enable branch protection
+## 4. Branch protection (already applied)
 
-Once you have confirmed the pipeline works end-to-end, lock the module branches so PRs can be reviewed but cannot be merged accidentally.
+The `prompt`, `rag`, and `agentic` branches are protected to **require the `Review (Claude)` check to pass before a PR can be merged**. When the AI verdict is `failed` the workflow exits with status 1, the check goes red, and the **Merge pull request** button is disabled. This is the defence-in-depth layer behind the no-merge policy: even if the **Merge** button is clicked by accident, GitHub itself refuses while the AI hasn't cleared the submission.
 
-For each of `prompt`, `rag`, `agentic`:
+The protection is intentionally minimal — only the status-check requirement is enabled. No PR approval requirement, no push restrictions, no signed-commits, no force-push block beyond GitHub's default. Tightening any of these is straightforward and additive.
 
-**Settings → Branches → Add branch ruleset** (or, on classic UI, **Add rule**):
+If you ever need to recreate the rules (e.g. after a branch deletion), run:
 
-- **Branch name pattern:** `prompt` (one ruleset per branch, or use `{prompt,rag,agentic}` if your plan supports rulesets with multiple targets).
-- **Require a pull request before merging** — ✓ (this keeps direct pushes blocked even though no one would normally push).
-- **Restrict who can push to matching branches** — ✓, leave the bypass list empty so even maintainers go through PRs.
-- **Block force pushes** — ✓.
-- **Restrict deletions** — ✓.
-- **Require status checks to pass before merging** — leave OFF. We are not gating merge with the AI verdict, because merging is not part of the workflow.
-
-> The simplest hard guarantee against accidental merges is the org-level GitHub setting **Allow merge commits / squash / rebase = OFF** on this repo (Settings → General → Pull Requests). That disables the "Merge pull request" button for everyone. Combine with the rules above for full protection.
+```bash
+for br in prompt rag agentic; do
+  gh api -X PUT "repos/griddynamics/gridu-genai/branches/$br/protection" \
+    -H "Accept: application/vnd.github+json" \
+    --input - <<'JSON'
+{
+  "required_status_checks": {"strict": false, "checks": [{"context": "Review (Claude)"}]},
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+JSON
+done
+```
 
 ---
 
@@ -96,17 +104,18 @@ Until then, rotate the JSON key periodically with `gcloud iam service-accounts k
 
 ---
 
-## 6. (Future) Notifications
+## 6. Notifications (GitHub-native)
 
-There are currently **no automatic notifications**. You check the repository's Pull Requests tab for new submissions and the AI verdicts on each.
+Every Claude run does two things in addition to posting the sticky review comment:
 
-Once the pipeline has passed Grid Dynamics' internal security review, the workflow can be extended to push notifications to:
+- **Applies a verdict label** to the PR — `ai-verdict/failed` (red), `ai-verdict/passed-with-notes` (yellow), or `ai-verdict/passed` (green). The label is created on first use and replaces any prior verdict label, so the PR list always shows the current state at a glance.
+- **Assigns the configured professors** when the verdict is `passed` or `passed_with_notes`. By default this is `drMacq` (set via the `PROFESSORS` env var in `.github/workflows/ai-review.yml`, comma-separated). Each assignee receives a standard GitHub notification — email (if their account settings allow it), web notification badge, and entries in the **Assigned to you** filter.
 
-- **Slack** — via an Incoming Webhook, gated on the AI verdict.
-- **Email** — via SendGrid or an equivalent provider.
-- **GitHub Issues / Projects** — auto-create a tracking item for each `passed*` submission so you have a follow-up backlog without leaving GitHub.
+No external integration is involved, so no security review is required.
 
-These are deliberately deferred until security review approves Grid Dynamics' use of an external messaging integration with the AI review pipeline.
+> **Tip — silence the noise.** GitHub does not re-notify on assignee re-application. The first time a PR enters `passed_with_notes`/`passed` the assignee receives one notification; subsequent re-runs that keep the same verdict do not re-notify.
+
+When security review eventually clears an external messaging integration, the same step can additionally push to Slack / email / Jira / Linear — add a conditional `curl` or action call inside the existing **Apply verdict label, notify professor, gate the check** step, gated on `$VERDICT`.
 
 ---
 
