@@ -24,9 +24,12 @@ Go to **Settings → Secrets and variables → Actions** in the repository and a
 | Secret | How to obtain |
 |---|---|
 | `ANTHROPIC_API_KEY` | <https://console.anthropic.com/settings/keys> → **Create Key**. If the org already provides an `ANTHROPIC_API_KEY` at the organization level, you do not need to add it here. |
-| `GEMINI_API_KEY` | <https://aistudio.google.com/apikey> → **Create API key**. Verify the quota in AI Studio before the first wave of submissions. |
+| `GCP_SA_KEY` | JSON key of a service account in your GCP project with the `roles/aiplatform.user` role. Generate via `gcloud iam service-accounts keys create key.json --iam-account=<SA email>`, then upload with `gh secret set GCP_SA_KEY < key.json`. |
+| `GCP_PROJECT_ID` | The GCP project ID that hosts the service account (used as the Vertex AI billing target). |
 
 `GITHUB_TOKEN` is provided automatically by GitHub Actions — no setup needed.
+
+> **Why Vertex AI, not the AI Studio API key.** Gemini preview models (e.g. `gemini-3.1-pro-preview`) are paid-only on AI Studio and not reachable from a free-tier `GEMINI_API_KEY`. Vertex AI bills against the GCP project instead, so preview models work as soon as the service account has `roles/aiplatform.user` on the project. To roll back to an AI Studio API key (only for non-preview models), swap the `Authenticate to Google Cloud` step + `use_vertex_ai: true` block in `.github/workflows/ai-review.yml` back to a single `gemini_api_key: ${{ secrets.GEMINI_API_KEY }}` input.
 
 ---
 
@@ -73,29 +76,23 @@ For each of `prompt`, `rag`, `agentic`:
 
 ---
 
-## 5. (Future) Upgrade Gemini to Vertex AI auth
+## 5. (Future) Upgrade Gemini auth from JSON key to Workload Identity Federation
 
-The course spec asks students to use Vertex AI through a GCP project. The Gemini reviewer currently uses an **AI Studio API key** because creating a Vertex-AI-enabled service account requires IAM admin rights on the GCP project that the current operator does not have.
+The Gemini job currently authenticates via a long-lived JSON key (`GCP_SA_KEY` secret). This is the simplest setup but the key never rotates. A better posture is **Workload Identity Federation** — GitHub Actions exchanges its short-lived OIDC token for a GCP access token, with no secret in the repo.
 
-When the IAM role is available, switch the Gemini job in `.github/workflows/ai-review.yml` to use Workload Identity Federation (no JSON key in secrets):
+To upgrade:
 
-1. Have a GCP-project admin create a service account with the `roles/aiplatform.user` role.
-2. Configure a WIF pool that trusts this repository (`google-github-actions/auth@v2` with `workload_identity_provider`).
-3. In the `gemini` job, add the auth step before `run-gemini-cli` and set the action's auth inputs:
+1. Have a GCP-project admin create a WIF pool + provider that trusts this repository's OIDC issuer. Bind the existing `gridu-genai-reviewer@gd-gcp-techlead-experiments.iam.gserviceaccount.com` to the pool via `roles/iam.workloadIdentityUser`.
+2. Replace the `Authenticate to Google Cloud` step in `.github/workflows/ai-review.yml`:
    ```yaml
    - uses: google-github-actions/auth@v2
      with:
-       workload_identity_provider: projects/.../providers/...
-       service_account: ai-reviewer-sa@PROJECT.iam.gserviceaccount.com
-   - uses: google-github-actions/run-gemini-cli@v0.1.22
-     with:
-       use_vertex_ai: true
-       gcp_project_id: <PROJECT_ID>
-       gcp_location: us-central1
-       gemini_model: gemini-3.1-pro-preview
-       prompt: ${{ env.REVIEW_PROMPT }}
+       workload_identity_provider: projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL>/providers/<PROVIDER>
+       service_account: gridu-genai-reviewer@gd-gcp-techlead-experiments.iam.gserviceaccount.com
    ```
-4. Drop the `gemini_api_key` input and remove the `GEMINI_API_KEY` secret.
+3. Delete the `GCP_SA_KEY` secret from the repo. Keep `GCP_PROJECT_ID`.
+
+Until then, rotate the JSON key periodically with `gcloud iam service-accounts keys create / delete`.
 
 ---
 
