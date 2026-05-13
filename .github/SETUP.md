@@ -66,13 +66,13 @@ The `prompt`, `rag`, and `agentic` branches are protected to require **two** sta
 
 This is intentional. Module branches are evaluation-only. PRs are read for their AI review and the code changes, then closed (without merge). `.github/workflows/cleanup-branch.yml` automatically deletes the head branch on PR close so the branch list stays tidy.
 
-### Updating rubrics / specs / workflows on a module branch
+### Updating the spec / workflows on a module branch
 
 The merge block only fires on `pull_request` events, so as an admin you can still push commits directly to a module branch from your local clone:
 
 ```bash
 git checkout rag
-# edit .github/rubrics/rag.md or README.md or whatever
+# edit README.md (the assignment spec) or any .github/ file
 git commit -am "Tighten Phase 3 wording"
 git push origin rag
 ```
@@ -145,7 +145,7 @@ When security review eventually clears an external messaging integration, the sa
 
 ## 7. Re-running a review
 
-A review re-runs automatically on every `synchronize` event (i.e., every new push to the PR head branch). Each bot updates its existing sticky comment in place rather than creating a new one each time. There is nothing to clean up.
+A review re-runs automatically on every `synchronize` event (i.e., every new push to the PR head branch). The bot updates its **existing** sticky comment in place rather than creating a new one — the header of the comment carries a `Last updated <UTC timestamp> · workflow run #N` line so each re-run is visible without spamming the PR.
 
 If you want to force a re-review without a code change, push an empty commit:
 
@@ -158,14 +158,29 @@ git push
 
 ## 8. Cost monitoring
 
-Both reviewers analyse the full submission on every PR push. Per-review cost depends on submission size. Watch usage at:
+The Claude reviewer analyses the full submission on every PR push. Per-review cost depends on submission size; watch usage at <https://console.anthropic.com/settings/usage>.
 
-- **Claude (`claude-opus-4-7`)** — <https://console.anthropic.com/settings/usage>.
-- **Gemini (`gemini-3.1-pro-preview`)** — <https://aistudio.google.com/apikey>.
+If costs become a concern, swap the model in `.github/workflows/ai-review.yml` from `claude-opus-4-7` to `claude-sonnet-4-6` — cheaper, faster, slightly shallower reviews. Same prompt, same output format.
 
-If costs become a concern, downgrade the models in `.github/workflows/ai-review.yml`:
+(Gemini was previously a parallel reviewer but is disabled until `roles/aiplatform.user` is granted on the service account — see the comment block in `ai-review.yml`. Re-enabling it is one revert + the IAM grant.)
 
-- Claude: `--model claude-sonnet-4-6` instead of `claude-opus-4-7`.
-- Gemini: `gemini_model: gemini-2.5-flash` instead of `gemini-3.1-pro-preview`.
+---
 
-Both swaps trade some depth for cheaper, faster reviews.
+## 9. Reusing this infrastructure for another course
+
+The pipeline is course-agnostic by design. To stand up a copy for a different course:
+
+1. **Fork or clone** this repo into a new repository for the course (e.g. `gridu-mlops`, `gridu-sre`).
+2. **Replace the module branches.** Create one orphan branch per course module — the branch name becomes the URL path students PR into. For each branch:
+   - The `README.md` is the **assignment specification** as it would be shared with students. The AI reviewer reads only this file to decide what is mandatory. There is no separate rubric and no hidden requirements list — the spec text is the source of truth.
+   - Add a `resources/` directory if the course ships datasets / templates / starter files; the reviewer skips that path.
+   - Keep `.github/workflows/` synchronised with `main`.
+3. **Edit `.github/workflows/ai-review.yml`** on `main` (then propagate):
+   - In the `on.pull_request.branches:` list — replace `[prompt, rag, agentic]` with your course's module branch names.
+   - In `merge-block.yml` and `cleanup-branch.yml` — same edit.
+   - In the `PROFESSORS` env var on the verdict step — set the comma-separated list of GitHub logins to auto-assign on `passed*`.
+4. **Re-apply branch protection** for the new module branches using the JSON in section 4 (swap the branch names in the loop).
+5. **Re-apply secrets** (`ANTHROPIC_API_KEY`, optionally `GCP_SA_KEY`+`GCP_PROJECT_ID` for Gemini).
+6. **Update this README + this SETUP guide** to reference the new course context, then point students at the new repo's main README.
+
+Nothing in the workflow, the verdict logic, the merge block, or the cleanup is hardcoded to any specific tech stack — Claude infers what's mandatory from the language in the branch's README each run.

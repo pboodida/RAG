@@ -2,9 +2,9 @@
 
 Welcome! This repository is the submission hub for the **Generative AI** training program at Grid University.
 
-Each course module has its own dedicated branch. You submit your capstone project by opening a **Pull Request** from your personal working branch into the matching module branch. **Two AI reviewers run in parallel on every PR** — Claude and Gemini — each posting its own detailed feedback as a PR comment.
+Each course module has its own dedicated branch. You submit your capstone project by opening a **Pull Request** from your personal working branch into the matching module branch. An AI reviewer (Claude) runs on every PR and posts a detailed sticky comment with verdict, per-phase analysis, and concrete action items.
 
-> ⚠️ **Pull Requests are evaluation-only.** The module branches (`prompt`, `rag`, `agentic`) exist solely as targets for review. **They are never merged.** Your professor reads your code and the AI reviews on the PR thread, then closes the PR. No code from a submission ever lands on a module branch.
+> ⚠️ **Pull Requests are evaluation-only.** The module branches (`prompt`, `rag`, `agentic`) exist solely as targets for review. **They are never merged.** Your professor reads your code and the AI review on the PR thread, then closes the PR. No code from a submission ever lands on a module branch.
 
 ---
 
@@ -16,7 +16,7 @@ Each course module has its own dedicated branch. You submit your capstone projec
 | **Retrieval-Augmented Generation** | [`rag`](https://github.com/griddynamics/gridu-genai/tree/rag) | A multimodal RAG system over the IFC Annual Report 2024 PDF (text, tables, images). |
 | **Agentic Systems** | [`agentic`](https://github.com/griddynamics/gridu-genai/tree/agentic) | An autonomous research agent built with ADK — plan, execute, critique, refine. |
 
-Each module branch contains a `README.md` describing the deliverables and a `resources/` directory with the course-provided materials for that module. The branch is otherwise empty — your PR adds your full project on top of that blank slate, so the reviewers see exactly what you built and nothing else.
+Each module branch contains a `README.md` with the assignment spec and a `resources/` directory with course-provided materials. The branch is otherwise empty — your PR adds your full project on top of that blank slate, so the reviewer sees exactly what you built and nothing else.
 
 ---
 
@@ -30,44 +30,43 @@ Each module branch contains a `README.md` describing the deliverables and a `res
    ```
 3. Implement your solution on that branch. Commit and push as often as you like.
 4. When you are ready for review, open a **Pull Request** targeting the module branch (`prompt`, `rag`, or `agentic`).
-5. Two AI reviewers run automatically:
-   - **Claude** (`claude-opus-4-7`) — posts its review as a single sticky comment.
-   - **Gemini** (`gemini-3.1-pro-preview`) — posts its review as a second sticky comment.
-
-   Each review includes an overall verdict (`failed` / `passed_with_notes` / `passed`), a technical-requirements table, a per-phase analysis with concrete file references, and a list of action items.
-6. If a reviewer says `failed`, push more commits — both bots re-run on every push and update their existing comments in place.
-7. Once you reach `passed` or `passed_with_notes`, request final review from your professor. They will read the PR, your code, and the AI feedback, then close the PR (without merging — see the warning at the top).
+5. The AI reviewer (Claude, `claude-opus-4-7`) runs automatically and posts a sticky comment with:
+   - an overall verdict (`failed` / `passed_with_notes` / `passed`),
+   - a technical-requirements table,
+   - a per-phase analysis with concrete file references,
+   - a list of action items so you know exactly what to fix.
+6. If the verdict is `failed`, push more commits — the bot re-runs on every push and updates its comment in place. Each update is tagged with a `Last updated …` timestamp at the top of the comment.
+7. Once you reach `passed` or `passed_with_notes`, your professor is automatically assigned to the PR and notified. They review the PR and close it (without merging — see the warning at the top).
 
 ---
 
-## What the AI reviewers check
+## What the AI reviewer checks
 
-Both reviewers read:
+The reviewer reads:
 
-- the **task specification** — the `README.md` of the module branch you are PR-ing into;
-- the **rubric** for that module — [`.github/rubrics/prompt.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/rubrics/prompt.md), [`.github/rubrics/rag.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/rubrics/rag.md), or [`.github/rubrics/agentic.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/rubrics/agentic.md).
+- the **assignment specification** — the `README.md` of the module branch you are PR-ing into (it is exactly what you were given, no hidden requirements);
+- your **code** — every file you contributed, except `.github/` and `resources/`.
 
-They then walk through every mandatory phase of the spec and verify, against the actual code:
+It then walks through every mandatory phase of the spec and verifies, against the actual code:
 
 - Are all explicitly required technologies actually imported and wired into the running app? (Not just listed in `requirements.txt`.)
 - Are all mandatory phases delivered end-to-end? Can the capability be traced from an entrypoint?
 - For each gap: does the student substitute an equivalent tool (acceptable, noted) or is the role omitted entirely (failure)?
 
-The reviewers cite file paths and line numbers when calling something out. They will not penalize you for items the spec labels `(Optional)` or `(optional for interns)`.
+The reviewer cites file paths and line numbers when calling something out. It will not penalize you for items the spec labels `(Optional)` or `(optional for interns)`.
 
 ---
 
 ## Repository layout
 
 ```text
-main                              ← this branch: workflow, rubrics, docs
+main                              ← this branch: workflow + docs
 ├── README.md
 └── .github/
-    ├── workflows/ai-review.yml   ← two parallel reviewer jobs (Claude + Gemini)
-    ├── rubrics/
-    │   ├── prompt.md             ← per-module grading guidance
-    │   ├── rag.md
-    │   └── agentic.md
+    ├── workflows/
+    │   ├── ai-review.yml         ← Claude reviewer
+    │   ├── merge-block.yml       ← always-fail check that disables Merge
+    │   └── cleanup-branch.yml    ← deletes head branch on PR close
     └── SETUP.md                  ← professor setup notes
 
 prompt                            ← orphan branch: Module 1 spec + resources
@@ -79,4 +78,4 @@ agentic                           ← orphan branch: Module 3 spec
 
 ## For professors
 
-See [`.github/SETUP.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/SETUP.md) for setup steps: required GitHub Secrets, the no-merge policy, and how to enable branch protection once the workflow is verified.
+See [`.github/SETUP.md`](https://github.com/griddynamics/gridu-genai/blob/main/.github/SETUP.md) for setup steps, the no-merge policy, branch protection, and notes on reusing this infrastructure for other courses.
