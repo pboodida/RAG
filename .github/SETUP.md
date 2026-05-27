@@ -167,7 +167,7 @@ Until then, rotate the JSON key periodically with `gcloud iam service-accounts k
 Every Claude run does two things in addition to posting the sticky review comment:
 
 - **Applies a verdict label** to the PR — `ai-verdict/failed` (red), `ai-verdict/passed-with-notes` (yellow), or `ai-verdict/passed` (green). The label is created on first use and replaces any prior verdict label, so the PR list always shows the current state at a glance.
-- **Assigns the configured professors** when the verdict is `passed` or `passed_with_notes`. By default this is `drMacq` (set via the `PROFESSORS` env var in `.github/workflows/ai-review.yml`, comma-separated). Each assignee receives a standard GitHub notification — email (if their account settings allow it), web notification badge, and entries in the **Assigned to you** filter.
+- **Assigns the configured professors** when the verdict is `passed` or `passed_with_notes`. The assignee list is set via the `PROFESSORS` env var in `.github/workflows/ai-review.yml` (comma-separated) and is base-branch-aware: PRs into `prompt` are assigned to `drMacq,nleushGd`; PRs into `rag` or `agentic` are assigned to `drMacq` only. Each assignee receives a standard GitHub notification — email (if their account settings allow it), web notification badge, and entries in the **Assigned to you** filter.
 
 No external integration is involved, so no security review is required.
 
