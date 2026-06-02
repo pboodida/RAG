@@ -30,7 +30,8 @@ Each module branch contains a `README.md` with the assignment spec and a `resour
    ```
 3. Implement your solution on that branch. Commit and push as often as you like.
 4. When you are ready for review, open a **Pull Request** targeting the module branch (`prompt`, `rag`, or `agentic`).
-5. The AI reviewer (Claude, `claude-opus-4-7`) runs automatically and posts a sticky comment with:
+   - **PR title must follow the convention `First Last - Module Name`** (e.g. `Jan Kowalski - Prompt Engineering`, `Anna Nowak - RAG`, `Piotr Wisniewski - Agentic Systems`). This is how your professor identifies whose submission they are reading.
+5. The AI reviewer (Claude, `claude-opus-4-8`) runs automatically and posts a sticky comment with:
    - an overall verdict (`failed` / `passed_with_notes` / `passed`),
    - a technical-requirements table,
    - a per-phase analysis with concrete file references,
