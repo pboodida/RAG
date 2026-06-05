@@ -4,7 +4,7 @@ Welcome! This repository is the submission hub for the **Generative AI** trainin
 
 Each course module has its own dedicated branch. You submit your capstone project by opening a **Pull Request** from your personal working branch into the matching module branch. An AI reviewer (Claude) runs on every PR and posts a detailed sticky comment with verdict, per-phase analysis, and concrete action items.
 
-> ⚠️ **Pull Requests are evaluation-only.** The module branches (`prompt`, `rag`, `agentic`) exist solely as targets for review. **They are never merged.** Your professor reads your code and the AI review on the PR thread, then closes the PR. No code from a submission ever lands on a module branch.
+> ⚠️ **Pull Requests are evaluation-only.** The module branches (`prompt`, `rag`, `agentic`, `basic-prompt`) exist solely as targets for review. **They are never merged.** Your professor reads your code and the AI review on the PR thread, then closes the PR. No code from a submission ever lands on a module branch.
 
 ---
 
@@ -13,6 +13,7 @@ Each course module has its own dedicated branch. You submit your capstone projec
 | Module | Target branch | What you build |
 |---|---|---|
 | **Prompt Engineering** | [`prompt`](https://github.com/griddynamics/gridu-genai/tree/prompt) | A conversational app with synthetic data generation + natural-language SQL querying. |
+| **Prompt Engineering Basic** | [`basic-prompt`](https://github.com/griddynamics/gridu-genai/tree/basic-prompt) | The lighter variant of the Prompt Engineering capstone — same data-generation + talk-to-your-data app, reduced scope (no guardrails, no advanced text-to-SQL). |
 | **Retrieval-Augmented Generation** | [`rag`](https://github.com/griddynamics/gridu-genai/tree/rag) | A multimodal RAG system over the IFC Annual Report 2024 PDF (text, tables, images). |
 | **Agentic Systems** | [`agentic`](https://github.com/griddynamics/gridu-genai/tree/agentic) | An autonomous research agent built with ADK — plan, execute, critique, refine. |
 
@@ -29,8 +30,8 @@ Each module branch contains a `README.md` with the assignment spec and a `resour
    git checkout -b <user-ldap-id>/rag-submission
    ```
 3. Implement your solution on that branch. Commit and push as often as you like.
-4. When you are ready for review, open a **Pull Request** targeting the module branch (`prompt`, `rag`, or `agentic`).
-   - **PR title must follow the convention `First Last - Module Name`** (e.g. `Jan Kowalski - Prompt Engineering`, `Anna Nowak - RAG`, `Piotr Wisniewski - Agentic Systems`). This is how your professor identifies whose submission they are reading.
+4. When you are ready for review, open a **Pull Request** targeting the module branch (`prompt`, `basic-prompt`, `rag`, or `agentic`).
+   - **PR title must follow the convention `First Last - Module Name`** (e.g. `Jan Kowalski - Prompt Engineering`, `Maria Wojcik - Prompt Engineering Basic`, `Anna Nowak - RAG`, `Piotr Wisniewski - Agentic Systems`). This is how your professor identifies whose submission they are reading.
 5. The AI reviewer (Claude, `claude-opus-4-8`) runs automatically and posts a sticky comment with:
    - an overall verdict (`failed` / `passed_with_notes` / `passed`),
    - a technical-requirements table,
@@ -71,6 +72,7 @@ main                              ← this branch: workflow + docs
     └── SETUP.md                  ← professor setup notes
 
 prompt                            ← orphan branch: Module 1 spec + resources
+basic-prompt                      ← orphan branch: Module 1 (Basic) spec + resources
 rag                               ← orphan branch: Module 2 spec + resources
 agentic                           ← orphan branch: Module 3 spec
 ```
