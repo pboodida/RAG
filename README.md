@@ -13,9 +13,11 @@ Each course module has its own dedicated branch. You submit your capstone projec
 | Module | Target branch | What you build |
 |---|---|---|
 | **Prompt Engineering** | [`prompt`](https://github.com/griddynamics/gridu-genai/tree/prompt) | A conversational app with synthetic data generation + natural-language SQL querying. |
-| **Prompt Engineering Basic** | [`basic-prompt`](https://github.com/griddynamics/gridu-genai/tree/basic-prompt) | The lighter variant of the Prompt Engineering capstone — same data-generation + talk-to-your-data app, reduced scope (no guardrails, no advanced text-to-SQL). |
+| **Prompt Engineering Basic** | [`basic-prompt`](https://github.com/griddynamics/gridu-genai/tree/basic-prompt) | A standalone *Prompt Engineering & AI Applications [Basic]* capstone. |
 | **Retrieval-Augmented Generation** | [`rag`](https://github.com/griddynamics/gridu-genai/tree/rag) | A multimodal RAG system over the IFC Annual Report 2024 PDF (text, tables, images). |
 | **Agentic Systems** | [`agentic`](https://github.com/griddynamics/gridu-genai/tree/agentic) | An autonomous research agent built with ADK — plan, execute, critique, refine. |
+
+> ⚠️ **`prompt` and `basic-prompt` are SEPARATE modules — not variants of each other.** They run as distinct courses, with their own cohorts, their own assignment specifications, and their own reviewer expectations. Submit to the module branch that matches the course you are enrolled in, and read **only that branch's `README.md`** for your spec. Confusing the two is the most common source of mis-targeted submissions on this repo.
 
 Each module branch contains a `README.md` with the assignment spec and a `resources/` directory with course-provided materials. The branch is otherwise empty — your PR adds your full project on top of that blank slate, so the reviewer sees exactly what you built and nothing else.
 
