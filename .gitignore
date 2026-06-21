@@ -1,0 +1,70 @@
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =========================
+# Python & Environments
+# =========================
+.venv/
+__pycache__/
+*.pyc
+.env
+data/cache/
+data/vector_store/
+ifc_colpali_index/
+.config/
+.pytest_cache/
+
+# =========================
+# IDEs & Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Security & Credentials
+# =========================
+.env.*
+*.pem
+.streamlit/secrets.toml
+
+# =========================
+# Project Specific: Databases & Indexes
+# =========================
+# Ignore all local Qdrant vector databases
+data/vector_store/
+
+# Ignore ColPali Byaldi visual indexes (These get MASSIVE and will crash git pushes)
+.byaldi/
+
+# =========================
+# Project Specific: Generated Artifacts
+# =========================
+# Ignore auto-extracted visual assets from Phase 5.2
+data/extracted_images/
+
+# Ignore the auto-generated markdown previews from Phase 5
+data/extracted_images_preview.md
+data/latest_extracted_tables.md
+data/extracted_tables_preview.md
+
+# =========================
+# Raw Data / PDFs
+# =========================
+# GitHub has a strict 100MB file limit. It is generally best practice to ignore raw PDFs.
+# If your PDFs are small and you WANT them on GitHub, comment out the line below:
+data/raw/*.pdf
+
+# Keep the empty folder structures intact for cloning
+!data/raw/.gitkeep
+!data/vector_store/.gitkeep
+!data/extracted_images/.gitkeep
