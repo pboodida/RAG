@@ -1,0 +1,36 @@
+# --- Core Google GenAI & Vertex AI (GCP Auth, No API Keys) ---
+google-genai>=0.3.0
+langchain-google-vertexai>=2.0.0
+google-cloud-aiplatform>=1.70.0
+
+# --- RAG Framework ---
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-qdrant>=0.1.0
+
+# --- PDF Processing & Parsing ---
+docling>=2.5.0       # Primary parser for Text, Tables, and Structure
+pypdf2>=3.0.0        # Fallback text extractor (per requirements)
+pdfminer.six>=20231228 # Fallback text extractor (per requirements)
+PyMuPDF>=1.24.0
+
+# --- Vector Databases ---
+faiss-cpu>=1.9.0
+qdrant-client>=1.12.0
+
+# --- UI & Data Manipulation ---
+streamlit>=1.40.0
+pandas>=2.2.0
+pillow>=10.3.0
+
+# --- Observability & Evaluation ---
+torch>=2.3.0
+torchvision>=0.18.0
+langfuse>=2.50.0
+ragas>=0.2.0
+datasets>=3.0.0
+python-dotenv>=1.0.0
+sentence-transformers>=2.5.0
+rank_bm25>=0.2.2
+byaldi>=0.0.5

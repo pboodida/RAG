@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  web-app:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      # 🛠️ FIXED: Tells the container where to find the ADC json file inside the Linux environment
+      - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
+    volumes:
+      - .:/app
+      # 🛠️ FIXED: Mounts your Mac's local gcloud config folder straight into the container's root directory
+      - ~/.config/gcloud:/root/.config/gcloud
+    command: streamlit run ui/app.py
